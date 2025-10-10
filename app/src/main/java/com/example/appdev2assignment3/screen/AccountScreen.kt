@@ -1,5 +1,6 @@
 package com.example.appdev2assignment3.screen
 
+import android.annotation.SuppressLint
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -25,56 +26,75 @@ import com.example.appdev2assignment3.screenUtilities.PostCard
 import com.example.appdev2assignment3.screenUtilities.ProfileImage
 import com.example.appdev2assignment3.utilities.Post
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 
+@SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun AccountScreen(profileURI: Uri?, onImageChange: (Uri?) -> Unit, 
                   username: String, onNameChange: (String) -> Unit,
                   description: String, onDescriptChange: (String) -> Unit,
-                  posts: List<Post>) {
+                  posts: List<Post>, popupText: String) {
     val MAX_NAME_LENGTH = 24
-    
-    MainLayout {
-        Column (
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Column (Modifier.background(Color.Blue) ) {
-                Row (modifier = Modifier.fillMaxWidth().padding(10.dp)) {
-                    Box (modifier = Modifier.weight(1f).aspectRatio(1f)) {
-                        ProfileImage(profileURI, onImageChange)
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { padding ->
+        MainLayout {
+            if (popupText.isNotBlank()) {
+                scope.launch {
+                    snackbarHostState.showSnackbar(popupText)
+                }
+            }
+            Column (
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Column (Modifier.background(Color.Blue) ) {
+                    Row (modifier = Modifier.fillMaxWidth().padding(10.dp)) {
+                        Box (modifier = Modifier.weight(1f).aspectRatio(1f)) {
+                            ProfileImage(profileURI, onImageChange)
+                        }
+
+                        Spacer(modifier = Modifier.width(10.dp))
+
+                        OutlinedTextField(
+                            value = username,
+                            onValueChange = {newText: String ->
+                                if (newText.length <= MAX_NAME_LENGTH) {
+                                    onNameChange(newText)
+                                }
+                            },
+                            modifier = Modifier.weight(4f).fillMaxWidth(),
+                            label = { Text(username) },
+                            singleLine = true
+                        )
                     }
 
-                    Spacer(modifier = Modifier.width(10.dp))
-
-                    OutlinedTextField(
-                        value = username,
+                    TextField(
+                        value = description,
                         onValueChange = {newText: String ->
-                            if (newText.length <= MAX_NAME_LENGTH) {
-                                onNameChange(newText)
-                            }
+                            onDescriptChange(newText)
                         },
-                        modifier = Modifier.weight(4f).fillMaxWidth(),
-                        label = { Text(username) },
-                        singleLine = true
+                        modifier = Modifier.fillMaxWidth().padding(10.dp).height(150.dp),
+                        label = { Text("Description") },
                     )
                 }
-
-                TextField(
-                    value = description,
-                    onValueChange = {newText: String ->
-                        onDescriptChange(newText)
-                    },
-                    modifier = Modifier.fillMaxWidth().padding(10.dp).height(150.dp),
-                    label = { Text("Description") },
-                )
-            }
-            Column {
-                LazyColumn { 
-                    items(posts) {
-                        post ->
-                        PostCard(post = post)
+                Column {
+                    LazyColumn {
+                        items(posts) {
+                                post ->
+                            PostCard(post = post)
+                        }
                     }
                 }
             }
         }
     }
+
 }

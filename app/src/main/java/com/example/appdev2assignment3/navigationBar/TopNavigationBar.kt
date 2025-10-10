@@ -28,7 +28,7 @@ fun TopNavigationBar() {
             }
         },
         actions = {
-            IconButton(onClick = { navController.navigate("AccountScreenRoute") }) {
+            IconButton(onClick = { navController.navigate("AccountScreenRoute/") }) {
                 Icon(
                     imageVector = Icons.Filled.AccountCircle,
                     contentDescription = "Navigate back"
